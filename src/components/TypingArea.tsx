@@ -5,6 +5,7 @@ interface TypingAreaProps {
   characters: CharacterData[];
   currentIndex: number;
   onKeyDown: (e: React.KeyboardEvent) => void;
+  onMobileInput: (char: string) => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
   disabled: boolean;
   onClick: () => void;
@@ -14,12 +15,40 @@ export const TypingArea: React.FC<TypingAreaProps> = ({
   characters,
   currentIndex,
   onKeyDown,
+  onMobileInput,
   inputRef,
   disabled,
   onClick,
 }) => {
   const currentCharRef = useRef<HTMLSpanElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const prevInputValueRef = useRef<string>('');
+
+  // Handle mobile input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    const prevValue = prevInputValueRef.current;
+
+    if (newValue.length > prevValue.length) {
+      // Characters added - extract and process each new character
+      const addedChars = newValue.slice(prevValue.length);
+      for (const char of addedChars) {
+        onMobileInput(char);
+      }
+    } else if (newValue.length < prevValue.length) {
+      // Characters removed (backspace)
+      onMobileInput('\x08');
+    }
+
+    // Keep input short to avoid accumulation (trim to last 5 chars if over 20)
+    if (newValue.length > 20) {
+      const trimmed = newValue.slice(-5);
+      e.target.value = trimmed;
+      prevInputValueRef.current = trimmed;
+    } else {
+      prevInputValueRef.current = newValue;
+    }
+  };
 
   // Auto-scroll to keep current character visible
   useEffect(() => {
@@ -40,8 +69,13 @@ export const TypingArea: React.FC<TypingAreaProps> = ({
         ref={inputRef}
         className="typing-input-hidden"
         onKeyDown={onKeyDown}
+        onChange={handleInputChange}
         disabled={disabled}
-        readOnly
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="off"
+        spellCheck={false}
+        inputMode="text"
         aria-label="Typing input — click here to focus and start typing"
       />
 

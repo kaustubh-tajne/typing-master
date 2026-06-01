@@ -18,6 +18,7 @@ export const TypingTestPage: React.FC = () => {
     stats,
     inputRef,
     handleKeyDown,
+    handleMobileInput,
     setTimerOption,
     setDevMode,
     restart,
@@ -91,6 +92,7 @@ export const TypingTestPage: React.FC = () => {
               characters={characters}
               currentIndex={currentIndex}
               onKeyDown={handleKeyDown}
+              onMobileInput={handleMobileInput}
               inputRef={inputRef}
               disabled={isFinished}
               onClick={focusInput}
